@@ -216,6 +216,7 @@ namespace subs2srs
 
     public static void updateProgressInvoke(DialogProgress dialogProgress, int progress, string text)
     {
+      if (dialogProgress == null) return;
       // Wait for thread to become avaiable
       if (dialogProgress.IsHandleCreated)
       { 
@@ -229,6 +230,7 @@ namespace subs2srs
 
     public static void updateProgressInvoke(DialogProgress dialogProgress, string text)
     {
+      if (dialogProgress == null) return;
       // Wait for thread to become avaiable
       if (dialogProgress.IsHandleCreated)
       {

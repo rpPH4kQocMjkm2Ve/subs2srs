@@ -484,32 +484,31 @@ namespace subs2srs
       Logger.Instance.info("Preview: GO!");
       Logger.Instance.writeSettingsToLog();
 
-      // Start the worker thread
       try
       {
         WorkerVars workerVars = new WorkerVars(null, tempPreviewDir, WorkerVars.SubsProcessingType.Preview);
 
-        // Create a background thread
-        BackgroundWorker bw = new BackgroundWorker();
-        bw.DoWork += new DoWorkEventHandler(bw_DoWork);
-        bw.RunWorkerCompleted += new RunWorkerCompletedEventHandler(bw_RunWorkerCompleted);
+        this.Cursor = Cursors.WaitCursor;
+        this.Enabled = false;
 
-        // Create a progress dialog on the UI thread
         dialogProgress = new DialogProgress();
 
-        bw.RunWorkerAsync(workerVars);
+        DoWorkEventArgs doWorkArgs = new DoWorkEventArgs(workerVars);
+        bw_DoWork(null, doWorkArgs);
 
-        // Lock up the UI with this modal progress form
-        // TODO: for some reason, on Mono/Linux the parent dialog is not
-        // re-enabled after the child modal goes away, leaving the form
-        // permanently grayed out. So as a workaround, we use Show() instead of
-        // ShowDialog()
-        //dialogProgress.ShowDialog();
-        dialogProgress.Show();
-        //dialogProgress = null;
+        if (!doWorkArgs.Cancel)
+        {
+          RunWorkerCompletedEventArgs completedArgs = new RunWorkerCompletedEventArgs(doWorkArgs.Result, null, false);
+          bw_RunWorkerCompleted(null, completedArgs);
+        }
+
+        this.Enabled = true;
+        this.Cursor = Cursors.Default;
       }
       catch (Exception e1)
       {
+        this.Enabled = true;
+        this.Cursor = Cursors.Default;
         UtilsMsg.showErrMsg("Something went wrong before preview could be generated.\n" + e1);
         return;
       }
