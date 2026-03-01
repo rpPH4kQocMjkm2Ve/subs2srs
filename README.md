@@ -1,56 +1,65 @@
-subs2srs for Linux
-==================
+# subs2srs
 
-I'm working on getting this to run on Linux. So far the basic features seem
-to work.
+Fork of [erjiang/subs2srs](https://github.com/erjiang/subs2srs) — a tool that creates
+[Anki](https://apps.ankiweb.net/) flashcards from movies and TV shows with subtitles,
+for language learning.
 
-To run on Linux, you will need to:
+## Credits
 
-* Install a recent-ish version of Mono. (Mono 4.x is known to do poorly with this program.)
-* Install "Microsoft Sans Serif" font.
-* Install various video tools. The binaries that this program can call are:
-  * mkvinfo and mkvextract (part of mkvtoolnix)
-  * ffmpeg (includes ffplay, required for audio preview)
-  * mp3gain
+- [Christopher Brochtrup](https://sourceforge.net/projects/subs2srs/) — original author of subs2srs
+- [erjiang](https://github.com/erjiang/subs2srs) — Linux/Mono port
+- [nihil-admirari](https://github.com/nihil-admirari/subs2srs-net48-builds) — updated
+  TagLibSharp, SourceGrid dependencies and SubsReTimer builds
+- [Ren Tatsumoto](https://aur.archlinux.org/packages/subs2srs) — original AUR packaging
+  (launcher script, desktop entries, fontconfig rule, icon extraction, system tool symlinks)
 
-Version
--------
-Currently this is based off of v29.6 from Sourceforge, which was the latest
-version as of December 2016. There is a version v29.7 which seems to only
-include newer build of ffmpeg, but this version requires that you provide
-your own ffmpeg.
+## Changes from upstream
 
-Build
------
-Prerequisites (Debian/Ubuntu):
+- **Fix preview deadlock on Linux (wayland):** replaced `BackgroundWorker` + modal dialog
+  with synchronous execution to avoid Mono WinForms permanently graying out the form.
+- **Build with `mcs` directly** via Makefile instead of msbuild/xbuild.
+- **No Microsoft fonts required:** fontconfig rule maps "Microsoft Sans Serif"
+  to Noto Sans CJK JP.
+- **Launcher script** that keeps config in `~/.config/subs2srs/`.
+- **Bundled SubsReTimer** — a subtitle timing synchronization tool.
+- **System tools via symlinks:** ffmpeg, mp3gain, mkvextract, mkvinfo are expected
+  from the system, not bundled.
 
-- mono-complete (includes WinForms, libgdiplus, msbuild)
-- ffmpeg
-- mkvtoolnix (for mkvinfo/mkvextract)
-- mp3gain
-- Microsoft core fonts (for “Microsoft Sans Serif”)
+## Dependencies
 
-Example install:
+- [mono](https://www.mono-project.com/)
+- [ffmpeg](https://ffmpeg.org/)
+- [mp3gain](https://mp3gain.sourceforge.net/)
+- [mkvtoolnix](https://mkvtoolnix.download/) (mkvextract, mkvinfo)
 
-- sudo apt update
-- sudo apt install mono-complete ffmpeg mkvtoolnix mp3gain ttf-mscorefonts-installer
+Optional:
+- [noto-fonts-cjk](https://github.com/notofonts/noto-cjk) — for Japanese/Chinese/Korean UI text
 
-Build with Mono (from repo root):
+## Build
 
-- msbuild subs2srs.sln /p:Configuration=MonoRelease
-  - On older Mono: xbuild subs2srs.sln /p:Configuration=MonoRelease
+```sh
+make build
+```
 
-Artifacts:
+## Install
 
-- subs2srs/bin/MonoRelease/subs2srs.exe
+### Arch Linux (AUR)
 
-Run
----
-- mono subs2srs/bin/MonoRelease/subs2srs.exe
+```sh
+yay -S subs2srs-git
+```
 
-Notes
------
-- You can also build a debug variant: msbuild subs2srs.sln /p:Configuration=MonoDebug
-- Ensure ffmpeg, mkvinfo, mkvextract, and mp3gain are in your PATH.
-  - ffplay must be available in PATH for the Preview Audio feature.
-- If UI rendering looks off, verify libgdiplus is present (installed with mono-complete) and run under X11.
+### Manual
+
+```sh
+git clone https://gitlab.com/fkzys/subs2srs.git
+cd subs2srs
+sudo make install
+```
+
+Installs to `/opt/subs2srs/`, launcher to `/usr/bin/subs2srs`.
+
+## Configuration
+
+On first run, `preferences.txt` is copied to `~/.config/subs2srs/`.
+The application runs from that directory.
